@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Registro de Ocorrências</title>
+    <meta name="description" content="Formulário de registro de ocorrências do Colégio Geração">
+    
+    <!-- Tags para PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2e7d32">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Registro Ocorrências">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --leaf-green: #2e7d32;
+            --leaf-green-light: #4caf50;
+            --leaf-green-dark: #1b5e20;
+            --leaf-green-pale: #e8f5e9;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f1f8e9;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23c8e6c9' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        
+        .form-container {
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto;
+            padding-bottom: 80px;
+        }
+        
+        .form-header {
+            border-top: 10px solid var(--leaf-green);
+            background: linear-gradient(to bottom, var(--leaf-green-pale), white);
+        }
+        
+        .required:after {
+            content: " *";
+            color: #e53935;
+        }
+        
+        .radio-option {
+            border: 1px solid #c8e6c9;
+            transition: all 0.2s ease;
+            background-color: white;
+        }
+        
+        .radio-option:hover {
+            background-color: #f1f8e9;
+            border-color: var(--leaf-green-light);
+        }
+        
+        input[type="radio"]:checked + label .radio-option {
+            background-color: #e8f5e9;
+            border-color: var(--leaf-green);
+        }
+        
+        .radio-circle {
+            border: 2px solid #81c784;
+            transition: all 0.2s ease;
+        }
+        
+        input[type="radio"]:checked + label .radio-circle {
+            border-color: var(--leaf-green);
+        }
+        
+        input[type="radio"]:checked + label .radio-circle::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background-color: var(--leaf-green);
+            border-radius: 50%;
+        }
+        
+        .submit-button {
+            transition: all 0.3s ease;
+            background-color: var(--leaf-green);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .submit-button:hover {
+            background-color: var(--leaf-green-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .submit-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .app-bar {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(to right, var(--leaf-green), var(--leaf-green-dark));
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--leaf-green);
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .form-card:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        input[type="text"], 
+        input[type="date"], 
+        select, 
+        textarea {
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus, 
+        input[type="date"]:focus, 
+        select:focus, 
+        textarea:focus {
+            border-color: var(--leaf-green-light);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+            outline: none;
+        }
+        
+        .leaf-icon {
+            color: var(--leaf-green);
+        }
+        
+        .school-logo {
+            width: 32px;
+            height: 32px;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--leaf-green-pale);
+            border-top: 5px solid var(--leaf-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Estilos para o botão de instalação do PWA */
+        #installButton {
+            display: none;
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            background-color: var(--leaf-green);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 10px 20px;
+            font-weight: 500;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        #installButton:hover {
+            background-color: var(--leaf-green-dark);
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p class="mt-4 text-gray-700 font-medium">Enviando registro...</p>
+    </div>
+
+    <!-- App Bar -->
+    <div class="app-bar p-4 flex items-center justify-between text-white">
+        <div class="flex items-center">
+            <span class="font-medium text-lg">Colégio Geração</span>
+        </div>
+        <div>
+            <!-- School Logo SVG -->
+            <svg class="school-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3L2 8L12 13L22 8L12 3Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 8V16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M17 11V16.5C17 17.6 14.8 18.5 12 18.5C9.2 18.5 7 17.6 7 16.5V11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M22 16V8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 5V2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 2L17 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Botão de instalação do PWA -->
+    <button id="installButton" class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Instalar App
+    </button>
+
+    <div class="form-container px-4 py-6">
+        <!-- Form Header -->
+        <div class="form-header rounded-t-lg shadow-sm mb-6 p-6 flex flex-col items-center">
+            <svg class="w-12 h-12 mb-3 leaf-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M4.553 1.776A1 1 0 014.553.776h10.894a1 1 0 010 2H4.553a1 1 0 010-2zm0 5A1 1 0 014.553 5.776h10.894a1 1 0 010 2H4.553a1 1 0 010-2zm0 5A1 1 0 014.553 10.776h10.894a1 1 0 010 2H4.553a1 1 0 010-2zm0 5A1 1 0 014.553 15.776h10.894a1 1 0 010 2H4.553a1 1 0 010-2z" clip-rule="evenodd"></path>
+            </svg>
+            <h1 class="text-2xl font-bold text-center text-gray-800">REGISTRO DE OCORRÊNCIAS</h1>
+        </div>
+
+        <form id="occurrenceForm">
+            <!-- Data -->
+            <div class="form-card mb-5 p-6">
+                <div class="mb-1">
+                    <label class="block text-gray-800 font-medium mb-2">DATA</label>
+                    <input type="date" name="data" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500" required>
+                </div>
+            </div>
+
+            <!-- Turma -->
+            <div class="form-card mb-5 p-6">
+                <div class="mb-1">
+                    <label class="block text-gray-800 font-medium mb-2">TURMA</label>
+                    <select name="turma" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 bg-white">
+                        <option value="">Selecione a turma</option>
+                        <option value="6º ano A">6º ano A</option>
+                        <option value="6º ano B">6º ano B</option>
+                        <option value="6º ano C">6º ano C</option>
+                        <option value="7º ano A">7º ano A</option>
+                        <option value="7º ano B">7º ano B</option>
+                        <option value="7º ano C">7º ano C</option>
+                        <option value="8º ano A">8º ano A</option>
+                        <option value="8º ano B">8º ano B</option>
+                        <option value="8º ano C">8º ano C</option>
+                        <option value="9º ano A">9º ano A</option>
+                        <option value="9º ano B">9º ano B</option>
+                        <option value="1ª série A">1ª série A</option>
+                        <option value="1ª série B">1ª série B</option>
+                        <option value="2ª série A">2ª série A</option>
+                        <option value="2ª série B">2ª série B</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Aula -->
+            <div class="form-card mb-5 p-6">
+                <div class="mb-1">
+                    <label class="block text-gray-800 font-medium mb-3">AULA</label>
+                    <div class="space-y-2">
+                        <div>
+                            <input type="radio" id="aula1" name="aula" value="1ª aula" class="hidden">
+                            <label for="aula1" class="cursor-pointer">
+                                <div class="radio-option flex items-center p-3 rounded-md">
+                                    <div class="relative w-5 h-5 radio-circle rounded-full mr-3"></div>
+                                    <span>1ª aula</span>
+                                </div>
+                            </label>
+                        </div>
+                        <div>
+                            <input type="radio" id="aula2" name="aula" value="2ª aula" class="hidden">
+                            <label for="aula2" class="cursor-pointer">
+                                <div class="radio-option flex items-center p-3 rounded-md">
+                                    <div class="relative w-5 h-5 radio-circle rounded-full mr-3"></div>
+                                    <span>2ª aula</span>
+                                </div>
+                            </label>
+                        </div>
+                        <div>
+                            <input type="radio" id="aula3" name="aula" value="3ª aula" class="hidden">
+                            <label for="aula3" class="cursor-pointer">
+                                <div class="radio-option flex items-center p-3 rounded-md">
+                                    <div class="relative w-5 h-5 radio-circle rounded-full mr-3"></div>
+                                    <span>3ª aula</span>
+                                </div>
+                            </label>
+                        </div>
+                        <div>
+                            <input type="radio" id="aula4" name="aula" value="4ª aula" class="hidden">
+                            <label for="aula4" class="cursor-pointer">
+                                <div class="radio-option flex items-center p-3 rounded-md">
+                                    <div class="relative w-5 h-5 radio-circle rounded-full mr-3"></div>
+                                    <span>4ª aula</span>
+                                </div>
+                            </label>
+                        </div>
+                        <div>
+                            <input type="radio" id="aula5" name="aula" value="5ª aula" class="hidden">
+                            <label for="aula5" class="cursor-pointer">
+                                <div class="radio-option flex items-center p-3 rounded-md">
+                                    <div class="relative w-5 h-5 radio-circle rounded-full mr-3"></div>
+                                    <span>5ª aula</span>
+                                </div>
+                            </label>
+                        </div>
+                        <div>
+                            <input type="radio" id="aula6" name="aula" value="6ª aula" class="hidden">
+                            <label for="aula6" class="cursor-pointer">
+                                <div class="radio-option flex items-center p-3 rounded-md">
+                                    <div class="relative w-5 h-5 radio-circle rounded-full mr-3"></div>
+                                    <span>6ª aula</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professor e Disciplina -->
+            <div class="form-card mb-5 p-6">
+                <div class="mb-1">
+                    <label class="block text-gray-800 font-medium mb-2">PROFESSOR e DISCIPLINA</label>
+                    <input type="text" name="professor_disciplina" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500">
+                </div>
+            </div>
+
+            <!-- Observações -->
+            <div class="form-card mb-5 p-6">
+                <div class="mb-1">
+                    <label class="block text-gray-800 font-medium mb-2">OBSERVAÇÕES</label>
+                    <textarea name="observacoes" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500" rows="5"></textarea>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg border-t border-gray-200">
+                <button type="submit" class="w-full bg-green-700 text-white py-3 rounded-md font-medium submit-button flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    Enviar Registro
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('occurrenceForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const installButton = document.getElementById('installButton');
+        let deferredPrompt;
+        
+        // Set today's date as default
+        const today = new Date().toISOString().split('T')[0];
+        document.querySelector('input[name="data"]').value = today;
+        
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Previne o envio padrão do formulário
+            
+            // Validate required fields
+            const data = form.querySelector('[name="data"]').value;
+            const turma = form.querySelector('[name="turma"]').value;
+            
+            if (!data) {
+                alert('Por favor, preencha a data.');
+                return;
+            }
+            
+            if (!turma) {
+                alert('Por favor, selecione uma turma.');
+                return;
+            }
+            
+            // Show loading overlay
+            loadingOverlay.style.display = 'flex';
+            
+            // Coletar os dados do formulário
+            const formData = new FormData(form);
+            
+            // Construir a URL com os parâmetros
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxdJVJUYuuQyTXSDYdwOrGX6yFbThbCknHsS3vMfmeRbil1CQ9bJMJ09W7sjwZOz-d1/exec';
+            
+            // Construir a string de consulta
+            const queryString = new URLSearchParams(formData).toString();
+            
+            // Criar um elemento iframe temporário
+            const tempIframe = document.createElement('iframe');
+            tempIframe.style.display = 'none';
+            document.body.appendChild(tempIframe);
+            
+            // Definir a URL do iframe
+            tempIframe.src = `${scriptURL}?${queryString}`;
+            
+            // Adicionar um timeout para considerar o envio bem-sucedido após 3 segundos
+            setTimeout(function() {
+                // Esconder overlay de carregamento
+                loadingOverlay.style.display = 'none';
+                
+                // Mostrar mensagem de sucesso
+                alert('Registro de ocorrência enviado com sucesso!');
+                
+                // Resetar formulário
+                form.reset();
+                
+                // Definir data de hoje novamente
+                document.querySelector('input[name="data"]').value = today;
+                
+                // Remover o iframe temporário após 5 segundos
+                setTimeout(() => {
+                    document.body.removeChild(tempIframe);
+                }, 5000);
+                
+            }, 3000); // 3 segundos
+        });
+        
+        // Código para instalação do PWA
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Previne o comportamento padrão do Chrome
+            e.preventDefault();
+            // Armazena o evento para uso posterior
+            deferredPrompt = e;
+            // Mostra o botão de instalação
+            installButton.style.display = 'flex';
+        });
+        
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Mostra o prompt de instalação
+                deferredPrompt.prompt();
+                // Espera o usuário responder ao prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                // Limpa a referência ao prompt
+                deferredPrompt = null;
+                // Esconde o botão de instalação
+                installButton.style.display = 'none';
+            }
+        });
+        
+        // Esconde o botão se o app já estiver instalado
+        window.addEventListener('appinstalled', () => {
+            installButton.style.display = 'none';
+        });
+    });
+    </script>
+    
+    <!-- Registro do Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Falha ao registrar o Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'94f13af205a8009f',t:'MTc0OTgxMzk1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
