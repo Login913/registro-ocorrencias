@@ -409,8 +409,15 @@
             // Construir a URL com os parâmetros
             const scriptURL = 'https://script.google.com/macros/s/AKfycbyw8mxxGUxEfUx4lldGWxU15Mv53JdB49sb7Uw8gFM/dev';
             
+            // CÓDIGO DE DEPURAÇÃO - Mostra a URL do script
+            console.log('URL do script:', scriptURL);
+            
             // Construir a string de consulta
             const queryString = new URLSearchParams(formData).toString();
+            
+            // CÓDIGO DE DEPURAÇÃO - Mostra os dados sendo enviados
+            console.log('Dados sendo enviados:', Object.fromEntries(formData.entries()));
+            console.log('Query string:', queryString);
             
             // Criar um elemento iframe temporário
             const tempIframe = document.createElement('iframe');
@@ -420,6 +427,11 @@
             // Definir a URL do iframe
             tempIframe.src = `${scriptURL}?${queryString}`;
             
+            // CÓDIGO DE DEPURAÇÃO - Log quando o iframe é carregado
+            tempIframe.onload = function() {
+                console.log('Iframe carregado, resposta recebida');
+            };
+            
             // Adicionar um timeout para considerar o envio bem-sucedido após 3 segundos
             setTimeout(function() {
                 // Esconder overlay de carregamento
@@ -427,6 +439,9 @@
                 
                 // Mostrar mensagem de sucesso
                 alert('Registro de ocorrência enviado com sucesso!');
+                
+                // CÓDIGO DE DEPURAÇÃO - Confirma o envio no console
+                console.log('Formulário enviado com sucesso!');
                 
                 // Resetar formulário
                 form.reset();
@@ -437,6 +452,7 @@
                 // Remover o iframe temporário após 5 segundos
                 setTimeout(() => {
                     document.body.removeChild(tempIframe);
+                    console.log('Iframe temporário removido');
                 }, 5000);
                 
             }, 3000); // 3 segundos
@@ -450,14 +466,17 @@
             deferredPrompt = e;
             // Mostra o botão de instalação
             installButton.style.display = 'flex';
+            console.log('Evento beforeinstallprompt capturado, botão de instalação exibido');
         });
         
         installButton.addEventListener('click', async () => {
             if (deferredPrompt) {
                 // Mostra o prompt de instalação
                 deferredPrompt.prompt();
+                console.log('Prompt de instalação exibido');
                 // Espera o usuário responder ao prompt
                 const { outcome } = await deferredPrompt.userChoice;
+                console.log(`Usuário ${outcome === 'accepted' ? 'aceitou' : 'recusou'} a instalação`);
                 // Limpa a referência ao prompt
                 deferredPrompt = null;
                 // Esconde o botão de instalação
@@ -468,6 +487,7 @@
         // Esconde o botão se o app já estiver instalado
         window.addEventListener('appinstalled', () => {
             installButton.style.display = 'none';
+            console.log('Aplicativo instalado com sucesso');
         });
     });
     </script>
@@ -481,10 +501,10 @@
                         console.log('Service Worker registrado com sucesso:', registration.scope);
                     })
                     .catch(error => {
-                        console.log('Falha ao registrar o Service Worker:', error);
+                        console.error('Falha ao registrar o Service Worker:', error);
                     });
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'94f13af205a8009f',t:'MTc0OTgxMzk1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'94f26e65f6a81cfb',t:'MTc0OTgyNjU1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
