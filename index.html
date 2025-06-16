@@ -14,7 +14,7 @@
     <meta name="apple-mobile-web-app-title" content="Registro Ocorrências">
     <link rel="apple-touch-icon" href="icon-192.png">
     
-    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=10RbT60sqNZShQFLR1--5R06-amKHWS4RYKuJkr5L36X5PHoqClksCFXhT2Cj4zUbic0lp4qT0unA5MdsXUrwjGuD3qZH-ZJ3eY-9yiRkhmqeO_cwu7H8RU_mv5OzhGnsfyTzrctL9vDSX2IqcEWQt5HgMw2K3LEKAMe5xbY6zDTdWD-8ZIWZ6AukaDpS8aK3HxyBAgjB1_WZJ6LMgkzAg" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=87jYwWwWfw3mNO94ucQBFYeIKY6KncETZXt-hH86EgUqCXEb8cDsBmhlqDWVirIOcRgrVZw80oH7oq0JBLCQnXyje-U5OW8iAuy936m5qWiFXE2ct7iyKQY_xVTH6He0aWd4WNQGp6abK98YNmmoTRXGjc7dlqKMz7pd9Tv-pwLXh07Rs_w76m7M1qUqQmwvlc2arW0koaRHSV-hjaZbhw" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -246,7 +246,8 @@
             <h1 class="text-2xl font-bold text-center text-gray-800">REGISTRO DE OCORRÊNCIAS</h1>
         </div>
 
-        <form id="occurrenceForm">
+        <!-- IMPORTANTE: Alteramos o formulário para usar o método GET e target _blank -->
+        <form id="occurrenceForm" method="GET" target="_blank" action="https://script.google.com/macros/s/AKfycbxkRTTqzlwEWND2B4zHmzD2J8aSNpyrM5Kc0QSzTkmeHBJen_TkM9-AIxYbndB827jb/exec">
             <!-- Data -->
             <div class="form-card mb-5 p-6">
                 <div class="mb-1">
@@ -259,7 +260,7 @@
             <div class="form-card mb-5 p-6">
                 <div class="mb-1">
                     <label class="block text-gray-800 font-medium mb-2">TURMA</label>
-                    <select name="turma" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 bg-white">
+                    <select name="turma" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 bg-white" required>
                         <option value="">Selecione a turma</option>
                         <option value="6º ano A">6º ano A</option>
                         <option value="6º ano B">6º ano B</option>
@@ -361,7 +362,7 @@
 
             <!-- Submit Button -->
             <div class="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg border-t border-gray-200">
-                <button type="submit" class="w-full bg-green-700 text-white py-3 rounded-md font-medium submit-button flex items-center justify-center">
+                <button type="submit" id="submitButton" class="w-full bg-green-700 text-white py-3 rounded-md font-medium submit-button flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                     </svg>
@@ -371,24 +372,23 @@
         </form>
     </div>
 
-    <!-- Iframe oculto para envio do formulário -->
-    <iframe id="hiddenIframe" name="hiddenIframe" style="display:none;"></iframe>
-
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('occurrenceForm');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const installButton = document.getElementById('installButton');
-        const hiddenIframe = document.getElementById('hiddenIframe');
+        const submitButton = document.getElementById('submitButton');
         let deferredPrompt;
         
         // Set today's date as default
         const today = new Date().toISOString().split('T')[0];
         document.querySelector('input[name="data"]').value = today;
         
-        // Form submission - IMPLEMENTAÇÃO DA ABORDAGEM 2
+        // ABORDAGEM 3: Usar o formulário HTML nativo com target="_blank"
+        // Isso contorna o Service Worker porque abre uma nova janela
         form.addEventListener('submit', function(e) {
-            e.preventDefault(); // Previne o envio padrão do formulário
+            // Não previne o envio padrão do formulário
+            // e.preventDefault();
             
             // Validate required fields
             const data = form.querySelector('[name="data"]').value;
@@ -396,97 +396,25 @@
             
             if (!data) {
                 alert('Por favor, preencha a data.');
+                e.preventDefault();
                 return;
             }
             
             if (!turma) {
                 alert('Por favor, selecione uma turma.');
+                e.preventDefault();
                 return;
             }
             
             // Show loading overlay
             loadingOverlay.style.display = 'flex';
             
-            // Coletar os dados do formulário
-            const formData = new FormData(form);
+            // Desabilitar o botão para evitar envios duplicados
+            submitButton.disabled = true;
             
-            // Construir a URL com os parâmetros
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxkRTTqzlwEWND2B4zHmzD2J8aSNpyrM5Kc0QSzTkmeHBJen_TkM9-AIxYbndB827jb/exec';
-            
-            // CÓDIGO DE DEPURAÇÃO - Mostra a URL do script
-            console.log('URL do script:', scriptURL);
-            
-            // Construir a string de consulta
-            const queryString = new URLSearchParams(formData).toString();
-            
-            // CÓDIGO DE DEPURAÇÃO - Mostra os dados sendo enviados
-            console.log('Dados sendo enviados:', Object.fromEntries(formData.entries()));
-            console.log('Query string:', queryString);
-            
-            // ABORDAGEM 2: Criar uma nova janela para enviar os dados
-            // Isso contorna o Service Worker porque abre uma nova conexão
-            const popupWindow = window.open('about:blank', '_blank');
-            
-            if (popupWindow) {
-                // Se a janela foi aberta com sucesso
-                try {
-                    // Redirecionar a janela para a URL do script com os parâmetros
-                    popupWindow.location.href = `${scriptURL}?${queryString}`;
-                    
-                    // Fechar a janela após um curto período
-                    setTimeout(() => {
-                        try {
-                            popupWindow.close();
-                        } catch (e) {
-                            console.log('Não foi possível fechar a janela automaticamente');
-                        }
-                        
-                        // Esconder overlay de carregamento
-                        loadingOverlay.style.display = 'none';
-                        
-                        // Mostrar mensagem de sucesso
-                        alert('Registro de ocorrência enviado com sucesso!');
-                        
-                        // Resetar formulário
-                        form.reset();
-                        
-                        // Definir data de hoje novamente
-                        document.querySelector('input[name="data"]').value = today;
-                    }, 3000);
-                } catch (e) {
-                    console.error('Erro ao redirecionar a janela:', e);
-                    // Tentar método alternativo
-                    usarMetodoAlternativo(formData, scriptURL, queryString);
-                }
-            } else {
-                // Se a janela foi bloqueada pelo navegador, usar método alternativo
-                console.log('Popup bloqueado pelo navegador, usando método alternativo');
-                usarMetodoAlternativo(formData, scriptURL, queryString);
-            }
-        });
-        
-        // Método alternativo de envio caso o popup seja bloqueado
-        function usarMetodoAlternativo(formData, scriptURL, queryString) {
-            // Criar um formulário temporário
-            const tempForm = document.createElement('form');
-            tempForm.action = scriptURL;
-            tempForm.method = 'GET';
-            tempForm.target = 'hiddenIframe';
-            
-            // Adicionar os campos do formulário
-            for (const [key, value] of formData.entries()) {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = key;
-                input.value = value;
-                tempForm.appendChild(input);
-            }
-            
-            // Adicionar o formulário ao documento
-            document.body.appendChild(tempForm);
-            
-            // Configurar o callback para quando o iframe terminar de carregar
-            hiddenIframe.onload = function() {
+            // Configurar um timer para esconder o overlay e resetar o formulário
+            // após um tempo, independentemente do resultado
+            setTimeout(function() {
                 // Esconder overlay de carregamento
                 loadingOverlay.style.display = 'none';
                 
@@ -499,35 +427,23 @@
                 // Definir data de hoje novamente
                 document.querySelector('input[name="data"]').value = today;
                 
-                // Remover o formulário temporário
-                document.body.removeChild(tempForm);
-            };
-            
-            // Enviar o formulário
-            tempForm.submit();
-            
-            // Definir um timeout de segurança caso o iframe não carregue
-            setTimeout(function() {
-                if (loadingOverlay.style.display === 'flex') {
-                    // Esconder overlay de carregamento
-                    loadingOverlay.style.display = 'none';
-                    
-                    // Mostrar mensagem de sucesso
-                    alert('Registro de ocorrência enviado com sucesso!');
-                    
-                    // Resetar formulário
-                    form.reset();
-                    
-                    // Definir data de hoje novamente
-                    document.querySelector('input[name="data"]').value = today;
-                    
-                    // Remover o formulário temporário se ainda existir
-                    if (document.body.contains(tempForm)) {
-                        document.body.removeChild(tempForm);
+                // Reabilitar o botão
+                submitButton.disabled = false;
+                
+                // Tentar fechar a janela/guia que foi aberta
+                try {
+                    // Verificar se há janelas abertas pelo script
+                    if (window.opener) {
+                        window.opener.focus();
                     }
+                } catch (e) {
+                    console.log('Não foi possível manipular outras janelas');
                 }
-            }, 5000);
-        }
+            }, 3000);
+            
+            // Permitir que o formulário seja enviado normalmente
+            // O target="_blank" fará com que abra em uma nova guia
+        });
         
         // Código para instalação do PWA
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -577,5 +493,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'950684dca06e6262',t:'MTc1MDAzNzE4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'950690bc71e2f1c9',t:'MTc1MDAzNzY3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
