@@ -14,7 +14,7 @@
     <meta name="apple-mobile-web-app-title" content="Registro Ocorrências">
     <link rel="apple-touch-icon" href="icon-192.png">
     
-    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=7c-xUHG6pjj01u-iy3V9yT8CnhLQIt1aSNf1gSL7nodYdEIRk4RaOFg_fTeMFXVPVGE5f1-9wYYwV6z7OT1xUXtZs7ETIYIGuSqj37ZFXW8eCN5cTLUT4Y5iiXn9X3eqGB00kXs7p7dv70xk4s3j0kVI7A7ygvDooyzytDi5SpzwCd0yR2IvIY459YujlQi4x0ZS6i-jPoygTwiGjr0Bbg" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=BCzjZdOrSbLacbgcJqXuzzNG6KNnETiMk5gNG6M1Gap3THxzSY0xic-Q-BoqfLHH6OqfUqIf2mvY-lC3jhlhFRwb4We-f8VTAiB81Zo6CyFjduG5SLbf1MLW3TOCRkgveKtxKFoCiF1qD9beAKeocuwMeveKF6p5gkJnfWiH8-2jSdehsrfK9kSaLcoOCW5Qbk1GozsIg7qG0b13nSWfYw" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -203,62 +203,12 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
         }
         
-        /* Status de conexão */
-        .connection-status {
-            position: fixed;
-            top: 60px;
-            right: 10px;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: 500;
-            z-index: 100;
+        /* iframe para envio */
+        #submissionFrame {
             display: none;
-        }
-        
-        .online {
-            background-color: #c8e6c9;
-            color: #2e7d32;
-        }
-        
-        .offline {
-            background-color: #ffcdd2;
-            color: #c62828;
-        }
-        
-        /* Notificação de cache */
-        .cache-notification {
-            position: fixed;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-            border-radius: 4px;
-            padding: 10px 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            z-index: 1000;
-            display: none;
-            text-align: center;
-            max-width: 90%;
-        }
-        
-        /* Log de debug */
-        #debugLog {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background-color: rgba(0,0,0,0.7);
-            color: white;
-            padding: 5px;
-            border-radius: 3px;
-            font-size: 10px;
-            max-width: 200px;
-            max-height: 100px;
-            overflow-y: auto;
-            z-index: 9999;
-            display: none;
+            width: 0;
+            height: 0;
+            border: 0;
         }
     </style>
 </head>
@@ -268,19 +218,6 @@
         <div class="spinner"></div>
         <p class="mt-4 text-gray-700 font-medium">Enviando registro...</p>
     </div>
-
-    <!-- Status de conexão -->
-    <div id="connectionStatus" class="connection-status">
-        Conectado
-    </div>
-
-    <!-- Notificação de cache -->
-    <div id="cacheNotification" class="cache-notification">
-        Você está offline. O registro será enviado quando a conexão for restabelecida.
-    </div>
-
-    <!-- Log de debug -->
-    <div id="debugLog"></div>
 
     <!-- App Bar -->
     <div class="app-bar p-4 flex items-center justify-between text-white">
@@ -442,225 +379,25 @@
         </form>
     </div>
 
+    <!-- iframe para envio direto -->
+    <iframe id="submissionFrame" name="submissionFrame"></iframe>
+
     <script>
-    // ABORDAGEM 4: Desativar o Service Worker e usar métodos diretos de envio
+    // ABORDAGEM 5: Usar um iframe para enviar os dados diretamente
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('occurrenceForm');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const installButton = document.getElementById('installButton');
         const submitButton = document.getElementById('submitButton');
-        const connectionStatus = document.getElementById('connectionStatus');
-        const cacheNotification = document.getElementById('cacheNotification');
-        const debugLog = document.getElementById('debugLog');
+        const submissionFrame = document.getElementById('submissionFrame');
         let deferredPrompt;
-        let isOnline = navigator.onLine;
-        
-        // Ativar logs de depuração
-        const DEBUG_MODE = true;
-        
-        if (DEBUG_MODE) {
-            debugLog.style.display = 'block';
-        }
-        
-        function log(message) {
-            if (DEBUG_MODE) {
-                console.log(message);
-                const logEntry = document.createElement('div');
-                logEntry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
-                debugLog.appendChild(logEntry);
-                debugLog.scrollTop = debugLog.scrollHeight;
-                
-                // Limitar o número de entradas de log
-                if (debugLog.children.length > 10) {
-                    debugLog.removeChild(debugLog.children[0]);
-                }
-            }
-        }
-        
-        // PASSO 1: Desregistrar o Service Worker existente
-        log('Tentando desregistrar o Service Worker...');
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for (let registration of registrations) {
-                    log(`Desregistrando Service Worker: ${registration.scope}`);
-                    registration.unregister();
-                }
-            }).catch(function(error) {
-                log(`Erro ao desregistrar Service Worker: ${error}`);
-            });
-        }
         
         // Set today's date as default
         const today = new Date().toISOString().split('T')[0];
         document.querySelector('input[name="data"]').value = today;
         
-        // Monitorar o status da conexão
-        function updateConnectionStatus() {
-            isOnline = navigator.onLine;
-            connectionStatus.textContent = isOnline ? 'Online' : 'Offline';
-            connectionStatus.className = isOnline ? 'connection-status online' : 'connection-status offline';
-            connectionStatus.style.display = 'block';
-            
-            log(`Status de conexão: ${isOnline ? 'Online' : 'Offline'}`);
-            
-            // Verificar se há registros em cache para enviar
-            if (isOnline) {
-                checkCachedSubmissions();
-            }
-        }
-        
-        window.addEventListener('online', updateConnectionStatus);
-        window.addEventListener('offline', updateConnectionStatus);
-        updateConnectionStatus();
-        
-        // Sistema de cache para armazenar submissões offline
-        function saveToCache(formData) {
-            try {
-                const cachedSubmissions = JSON.parse(localStorage.getItem('cachedSubmissions')) || [];
-                const submission = {};
-                
-                for (const [key, value] of formData.entries()) {
-                    submission[key] = value;
-                }
-                
-                submission.timestamp = new Date().toISOString();
-                cachedSubmissions.push(submission);
-                localStorage.setItem('cachedSubmissions', JSON.stringify(cachedSubmissions));
-                
-                log(`Registro salvo no cache. Total: ${cachedSubmissions.length}`);
-                return true;
-            } catch (error) {
-                log(`Erro ao salvar no cache: ${error}`);
-                return false;
-            }
-        }
-        
-        function checkCachedSubmissions() {
-            try {
-                const cachedSubmissions = JSON.parse(localStorage.getItem('cachedSubmissions')) || [];
-                
-                if (cachedSubmissions.length > 0) {
-                    log(`Encontrados ${cachedSubmissions.length} registros em cache para enviar`);
-                    
-                    // Processar um por um
-                    processCachedSubmission(cachedSubmissions, 0);
-                }
-            } catch (error) {
-                log(`Erro ao verificar cache: ${error}`);
-            }
-        }
-        
-        function processCachedSubmission(submissions, index) {
-            if (index >= submissions.length) {
-                log('Todos os registros em cache foram processados');
-                localStorage.setItem('cachedSubmissions', JSON.stringify([]));
-                return;
-            }
-            
-            const submission = submissions[index];
-            log(`Processando registro em cache ${index + 1}/${submissions.length}`);
-            
-            // Criar FormData a partir do objeto
-            const formData = new FormData();
-            for (const key in submission) {
-                if (key !== 'timestamp') {
-                    formData.append(key, submission[key]);
-                }
-            }
-            
-            // Tentar enviar
-            sendFormDataWithFetch(formData, true)
-                .then(success => {
-                    if (success) {
-                        log(`Registro em cache ${index + 1} enviado com sucesso`);
-                        // Remover este registro e continuar com o próximo
-                        submissions.splice(index, 1);
-                        localStorage.setItem('cachedSubmissions', JSON.stringify(submissions));
-                        processCachedSubmission(submissions, index);
-                    } else {
-                        log(`Falha ao enviar registro em cache ${index + 1}, tentando próximo`);
-                        processCachedSubmission(submissions, index + 1);
-                    }
-                })
-                .catch(error => {
-                    log(`Erro ao processar registro em cache: ${error}`);
-                    processCachedSubmission(submissions, index + 1);
-                });
-        }
-        
-        // Função para enviar dados usando fetch com no-cors
-        async function sendFormDataWithFetch(formData, isCachedSubmission = false) {
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxkRTTqzlwEWND2B4zHmzD2J8aSNpyrM5Kc0QSzTkmeHBJen_TkM9-AIxYbndB827jb/exec';
-            
-            // Construir a URL com os parâmetros
-            const params = new URLSearchParams();
-            for (const [key, value] of formData.entries()) {
-                params.append(key, value);
-            }
-            
-            const url = `${scriptURL}?${params.toString()}`;
-            log(`Tentando enviar dados via fetch para: ${url}`);
-            
-            try {
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'no-cors', // Importante: isso permite requisições cross-origin
-                    cache: 'no-cache',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Cache-Control': 'no-cache, no-store, must-revalidate'
-                    }
-                });
-                
-                log('Resposta do fetch recebida (no-cors não permite verificar o status)');
-                return true;
-            } catch (error) {
-                log(`Erro no fetch: ${error}`);
-                
-                // Se não for uma submissão de cache, tentar com XMLHttpRequest
-                if (!isCachedSubmission) {
-                    return sendFormDataWithXHR(formData);
-                }
-                
-                return false;
-            }
-        }
-        
-        // Função alternativa usando XMLHttpRequest
-        function sendFormDataWithXHR(formData) {
-            return new Promise((resolve, reject) => {
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbxkRTTqzlwEWND2B4zHmzD2J8aSNpyrM5Kc0QSzTkmeHBJen_TkM9-AIxYbndB827jb/exec';
-                
-                // Construir a URL com os parâmetros
-                const params = new URLSearchParams();
-                for (const [key, value] of formData.entries()) {
-                    params.append(key, value);
-                }
-                
-                const url = `${scriptURL}?${params.toString()}`;
-                log(`Tentando enviar dados via XMLHttpRequest para: ${url}`);
-                
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', url, true);
-                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-                
-                xhr.onload = function() {
-                    log(`XMLHttpRequest concluído com status: ${xhr.status}`);
-                    resolve(true);
-                };
-                
-                xhr.onerror = function(error) {
-                    log(`Erro no XMLHttpRequest: ${error}`);
-                    resolve(false);
-                };
-                
-                xhr.send();
-            });
-        }
-        
         // Manipulador de envio do formulário
-        form.addEventListener('submit', async function(e) {
+        form.addEventListener('submit', function(e) {
             e.preventDefault();
             
             // Validate required fields
@@ -686,63 +423,61 @@
             // Coletar os dados do formulário
             const formData = new FormData(form);
             
-            // Verificar se está online
-            if (!isOnline) {
-                log('Dispositivo offline, salvando no cache');
-                
-                // Salvar no cache para envio posterior
-                const saved = saveToCache(formData);
-                
-                // Esconder overlay de carregamento
-                loadingOverlay.style.display = 'none';
-                
-                // Mostrar notificação de cache
-                cacheNotification.style.display = 'block';
-                setTimeout(() => {
-                    cacheNotification.style.display = 'none';
-                }, 5000);
-                
-                // Mostrar mensagem
-                if (saved) {
-                    alert('Você está offline. O registro foi salvo e será enviado automaticamente quando a conexão for restabelecida.');
-                } else {
-                    alert('Não foi possível salvar o registro para envio posterior. Verifique sua conexão e tente novamente.');
-                }
-                
-                // Resetar formulário
-                form.reset();
-                document.querySelector('input[name="data"]').value = today;
-                submitButton.disabled = false;
-                
-                return;
+            // Construir a URL com os parâmetros
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxkRTTqzlwEWND2B4zHmzD2J8aSNpyrM5Kc0QSzTkmeHBJen_TkM9-AIxYbndB827jb/exec';
+            const params = new URLSearchParams();
+            
+            for (const [key, value] of formData.entries()) {
+                params.append(key, value);
             }
             
-            // Tentar enviar os dados
-            try {
-                log('Iniciando envio de dados...');
-                const success = await sendFormDataWithFetch(formData);
+            const url = `${scriptURL}?${params.toString()}`;
+            
+            // Adicionar um timestamp para evitar cache
+            const timestamp = new Date().getTime();
+            const finalUrl = `${url}&_nocache=${timestamp}`;
+            
+            // Usar o iframe para carregar a URL
+            submissionFrame.onload = function() {
+                console.log('iframe carregado');
                 
-                // Esconder overlay de carregamento
-                loadingOverlay.style.display = 'none';
-                
-                if (success) {
-                    log('Envio bem-sucedido');
+                // Esconder overlay de carregamento após um tempo
+                setTimeout(function() {
+                    loadingOverlay.style.display = 'none';
+                    
+                    // Mostrar mensagem de sucesso
                     alert('Registro de ocorrência enviado com sucesso!');
                     
                     // Resetar formulário
                     form.reset();
+                    
+                    // Definir data de hoje novamente
                     document.querySelector('input[name="data"]').value = today;
-                } else {
-                    log('Falha no envio');
-                    alert('Não foi possível enviar o registro. Tente novamente mais tarde.');
-                }
-            } catch (error) {
-                log(`Erro durante o envio: ${error}`);
-                alert('Ocorreu um erro ao enviar o registro. Tente novamente mais tarde.');
+                    
+                    // Reabilitar o botão
+                    submitButton.disabled = false;
+                }, 2000);
+            };
+            
+            // Em caso de erro no iframe
+            submissionFrame.onerror = function() {
+                console.error('Erro ao carregar o iframe');
                 loadingOverlay.style.display = 'none';
-            } finally {
+                alert('Ocorreu um erro ao enviar o registro. Tente novamente mais tarde.');
                 submitButton.disabled = false;
-            }
+            };
+            
+            // Definir um timeout para o caso de o evento onload não disparar
+            setTimeout(function() {
+                if (loadingOverlay.style.display === 'flex') {
+                    loadingOverlay.style.display = 'none';
+                    alert('O envio pode ter sido concluído, mas não foi possível confirmar. Verifique mais tarde.');
+                    submitButton.disabled = false;
+                }
+            }, 10000);
+            
+            // Carregar a URL no iframe
+            submissionFrame.src = finalUrl;
         });
         
         // Código para instalação do PWA
@@ -753,17 +488,14 @@
             deferredPrompt = e;
             // Mostra o botão de instalação
             installButton.style.display = 'flex';
-            log('Evento beforeinstallprompt capturado, botão de instalação exibido');
         });
         
         installButton.addEventListener('click', async () => {
             if (deferredPrompt) {
                 // Mostra o prompt de instalação
                 deferredPrompt.prompt();
-                log('Prompt de instalação exibido');
                 // Espera o usuário responder ao prompt
                 const { outcome } = await deferredPrompt.userChoice;
-                log(`Usuário ${outcome === 'accepted' ? 'aceitou' : 'recusou'} a instalação`);
                 // Limpa a referência ao prompt
                 deferredPrompt = null;
                 // Esconde o botão de instalação
@@ -774,14 +506,8 @@
         // Esconde o botão se o app já estiver instalado
         window.addEventListener('appinstalled', () => {
             installButton.style.display = 'none';
-            log('Aplicativo instalado com sucesso');
         });
-        
-        // Verificar se há registros em cache para enviar ao iniciar
-        if (isOnline) {
-            checkCachedSubmissions();
-        }
     });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95069b1ce25c794f',t:'MTc1MDAzODA5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9506a8ec868c464c',t:'MTc1MDAzODY2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
