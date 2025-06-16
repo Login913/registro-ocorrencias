@@ -14,7 +14,7 @@
     <meta name="apple-mobile-web-app-title" content="Registro Ocorrências">
     <link rel="apple-touch-icon" href="icon-192.png">
     
-    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=BCzjZdOrSbLacbgcJqXuzzNG6KNnETiMk5gNG6M1Gap3THxzSY0xic-Q-BoqfLHH6OqfUqIf2mvY-lC3jhlhFRwb4We-f8VTAiB81Zo6CyFjduG5SLbf1MLW3TOCRkgveKtxKFoCiF1qD9beAKeocuwMeveKF6p5gkJnfWiH8-2jSdehsrfK9kSaLcoOCW5Qbk1GozsIg7qG0b13nSWfYw" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=Qp6HUuWQnRyZrcvJgeL4YJe7Pq8FQEJ8lgrL466eJMSUC5IIkcf6ITZvnAJtVBahyQxxwATKZrhjE2rNFI_MO3vTqbtknBbn-J8x0E8X0D1zmwKms4fyMeAIACYU1HZJ9KU_hgkK8TmnAru8_ZXOtQYjzMyT8iPsH9-JdHYreD7CQaV5leg88TqlljckXFtFWwF90ZoTb4aSMsLrm6VrGg" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -203,12 +203,26 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
         }
         
-        /* iframe para envio */
-        #submissionFrame {
+        /* Mensagem de sucesso */
+        #successMessage {
             display: none;
-            width: 0;
-            height: 0;
-            border: 0;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            z-index: 1001;
+            max-width: 90%;
+        }
+        
+        .success-icon {
+            color: var(--leaf-green);
+            font-size: 48px;
+            margin-bottom: 16px;
         }
     </style>
 </head>
@@ -217,6 +231,14 @@
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner"></div>
         <p class="mt-4 text-gray-700 font-medium">Enviando registro...</p>
+    </div>
+    
+    <!-- Mensagem de sucesso -->
+    <div id="successMessage">
+        <div class="success-icon">✓</div>
+        <h2 class="text-xl font-bold mb-2">Registro Enviado!</h2>
+        <p class="mb-4">Seu registro de ocorrência foi enviado com sucesso.</p>
+        <button id="closeSuccessBtn" class="px-4 py-2 bg-green-700 text-white rounded-md">Fechar</button>
     </div>
 
     <!-- App Bar -->
@@ -379,18 +401,31 @@
         </form>
     </div>
 
-    <!-- iframe para envio direto -->
-    <iframe id="submissionFrame" name="submissionFrame"></iframe>
-
     <script>
-    // ABORDAGEM 5: Usar um iframe para enviar os dados diretamente
+    // ABORDAGEM 6: Redirecionamento direto para o Google Script
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('occurrenceForm');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const installButton = document.getElementById('installButton');
         const submitButton = document.getElementById('submitButton');
-        const submissionFrame = document.getElementById('submissionFrame');
+        const successMessage = document.getElementById('successMessage');
+        const closeSuccessBtn = document.getElementById('closeSuccessBtn');
         let deferredPrompt;
+        
+        // Verificar se estamos retornando de um envio bem-sucedido
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            // Mostrar mensagem de sucesso
+            successMessage.style.display = 'block';
+            
+            // Limpar a URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
+        // Fechar mensagem de sucesso
+        closeSuccessBtn.addEventListener('click', function() {
+            successMessage.style.display = 'none';
+        });
         
         // Set today's date as default
         const today = new Date().toISOString().split('T')[0];
@@ -431,53 +466,18 @@
                 params.append(key, value);
             }
             
-            const url = `${scriptURL}?${params.toString()}`;
+            // Adicionar parâmetro de retorno com a URL atual
+            const returnUrl = encodeURIComponent(window.location.href + '?success=true');
+            params.append('return_url', returnUrl);
             
             // Adicionar um timestamp para evitar cache
             const timestamp = new Date().getTime();
-            const finalUrl = `${url}&_nocache=${timestamp}`;
+            params.append('_nocache', timestamp);
             
-            // Usar o iframe para carregar a URL
-            submissionFrame.onload = function() {
-                console.log('iframe carregado');
-                
-                // Esconder overlay de carregamento após um tempo
-                setTimeout(function() {
-                    loadingOverlay.style.display = 'none';
-                    
-                    // Mostrar mensagem de sucesso
-                    alert('Registro de ocorrência enviado com sucesso!');
-                    
-                    // Resetar formulário
-                    form.reset();
-                    
-                    // Definir data de hoje novamente
-                    document.querySelector('input[name="data"]').value = today;
-                    
-                    // Reabilitar o botão
-                    submitButton.disabled = false;
-                }, 2000);
-            };
+            const url = `${scriptURL}?${params.toString()}`;
             
-            // Em caso de erro no iframe
-            submissionFrame.onerror = function() {
-                console.error('Erro ao carregar o iframe');
-                loadingOverlay.style.display = 'none';
-                alert('Ocorreu um erro ao enviar o registro. Tente novamente mais tarde.');
-                submitButton.disabled = false;
-            };
-            
-            // Definir um timeout para o caso de o evento onload não disparar
-            setTimeout(function() {
-                if (loadingOverlay.style.display === 'flex') {
-                    loadingOverlay.style.display = 'none';
-                    alert('O envio pode ter sido concluído, mas não foi possível confirmar. Verifique mais tarde.');
-                    submitButton.disabled = false;
-                }
-            }, 10000);
-            
-            // Carregar a URL no iframe
-            submissionFrame.src = finalUrl;
+            // Redirecionar para a URL do Google Script
+            window.location.href = url;
         });
         
         // Código para instalação do PWA
@@ -509,5 +509,5 @@
         });
     });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9506a8ec868c464c',t:'MTc1MDAzODY2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9506b14de5eff1b4',t:'MTc1MDAzOTAwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
