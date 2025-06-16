@@ -14,7 +14,7 @@
     <meta name="apple-mobile-web-app-title" content="Registro Ocorrências">
     <link rel="apple-touch-icon" href="icon-192.png">
     
-    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=1KNqEVxRp-RCQcWtI3i6y1LvZmTetQOrSEKkPGcsBEoH8eqk88tVcFWAZCsnBwWy6x6BO0lGHYa7ZyTNQrdc3a0-p_N5Z1Yv24ITvcPuAThmNuIj3r2VOfeiZEaOSthLUXa0ptDmGzVPzQBiVZYcwcCBOPWa8qtvG9MyJAtxMKojsI_JL3L8r3A7UYVYF38sZbkwZpvDlpayxHtKLTjnPw" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=10RbT60sqNZShQFLR1--5R06-amKHWS4RYKuJkr5L36X5PHoqClksCFXhT2Cj4zUbic0lp4qT0unA5MdsXUrwjGuD3qZH-ZJ3eY-9yiRkhmqeO_cwu7H8RU_mv5OzhGnsfyTzrctL9vDSX2IqcEWQt5HgMw2K3LEKAMe5xbY6zDTdWD-8ZIWZ6AukaDpS8aK3HxyBAgjB1_WZJ6LMgkzAg" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -371,19 +371,22 @@
         </form>
     </div>
 
+    <!-- Iframe oculto para envio do formulário -->
+    <iframe id="hiddenIframe" name="hiddenIframe" style="display:none;"></iframe>
+
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('occurrenceForm');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const installButton = document.getElementById('installButton');
+        const hiddenIframe = document.getElementById('hiddenIframe');
         let deferredPrompt;
-        let serviceWorkerRegistration = null;
         
         // Set today's date as default
         const today = new Date().toISOString().split('T')[0];
         document.querySelector('input[name="data"]').value = today;
         
-        // Form submission - IMPLEMENTAÇÃO DA ABORDAGEM 1
+        // Form submission - IMPLEMENTAÇÃO DA ABORDAGEM 2
         form.addEventListener('submit', function(e) {
             e.preventDefault(); // Previne o envio padrão do formulário
             
@@ -404,37 +407,6 @@
             // Show loading overlay
             loadingOverlay.style.display = 'flex';
             
-            // ABORDAGEM 1: Desregistrar o Service Worker antes de enviar o formulário
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    // Armazenar a referência do Service Worker para registrá-lo novamente depois
-                    if (registrations.length > 0) {
-                        serviceWorkerRegistration = registrations[0];
-                        
-                        // Desregistrar todos os Service Workers
-                        const unregisterPromises = registrations.map(registration => {
-                            console.log('Desregistrando Service Worker temporariamente:', registration.scope);
-                            return registration.unregister();
-                        });
-                        
-                        return Promise.all(unregisterPromises);
-                    }
-                }).then(() => {
-                    // Após desregistrar o Service Worker, enviar o formulário
-                    enviarFormulario();
-                }).catch(error => {
-                    console.error('Erro ao desregistrar Service Worker:', error);
-                    // Tentar enviar o formulário mesmo assim
-                    enviarFormulario();
-                });
-            } else {
-                // Se não houver suporte a Service Worker, enviar o formulário diretamente
-                enviarFormulario();
-            }
-        });
-        
-        // Função para enviar o formulário
-        function enviarFormulario() {
             // Coletar os dados do formulário
             const formData = new FormData(form);
             
@@ -451,28 +423,73 @@
             console.log('Dados sendo enviados:', Object.fromEntries(formData.entries()));
             console.log('Query string:', queryString);
             
-            // Enviar os dados diretamente via fetch em vez de usar iframe
-            fetch(`${scriptURL}?${queryString}`, {
-                method: 'GET',
-                mode: 'no-cors' // Importante para evitar erros de CORS
-            })
-            .then(response => {
-                console.log('Resposta recebida:', response);
-                finalizarEnvio(true);
-            })
-            .catch(error => {
-                console.error('Erro ao enviar formulário:', error);
-                // Mesmo com erro, consideramos como enviado, pois o Google Script pode ter processado
-                finalizarEnvio(true);
-            });
-        }
-        
-        // Função para finalizar o processo de envio
-        function finalizarEnvio(sucesso) {
-            // Esconder overlay de carregamento
-            loadingOverlay.style.display = 'none';
+            // ABORDAGEM 2: Criar uma nova janela para enviar os dados
+            // Isso contorna o Service Worker porque abre uma nova conexão
+            const popupWindow = window.open('about:blank', '_blank');
             
-            if (sucesso) {
+            if (popupWindow) {
+                // Se a janela foi aberta com sucesso
+                try {
+                    // Redirecionar a janela para a URL do script com os parâmetros
+                    popupWindow.location.href = `${scriptURL}?${queryString}`;
+                    
+                    // Fechar a janela após um curto período
+                    setTimeout(() => {
+                        try {
+                            popupWindow.close();
+                        } catch (e) {
+                            console.log('Não foi possível fechar a janela automaticamente');
+                        }
+                        
+                        // Esconder overlay de carregamento
+                        loadingOverlay.style.display = 'none';
+                        
+                        // Mostrar mensagem de sucesso
+                        alert('Registro de ocorrência enviado com sucesso!');
+                        
+                        // Resetar formulário
+                        form.reset();
+                        
+                        // Definir data de hoje novamente
+                        document.querySelector('input[name="data"]').value = today;
+                    }, 3000);
+                } catch (e) {
+                    console.error('Erro ao redirecionar a janela:', e);
+                    // Tentar método alternativo
+                    usarMetodoAlternativo(formData, scriptURL, queryString);
+                }
+            } else {
+                // Se a janela foi bloqueada pelo navegador, usar método alternativo
+                console.log('Popup bloqueado pelo navegador, usando método alternativo');
+                usarMetodoAlternativo(formData, scriptURL, queryString);
+            }
+        });
+        
+        // Método alternativo de envio caso o popup seja bloqueado
+        function usarMetodoAlternativo(formData, scriptURL, queryString) {
+            // Criar um formulário temporário
+            const tempForm = document.createElement('form');
+            tempForm.action = scriptURL;
+            tempForm.method = 'GET';
+            tempForm.target = 'hiddenIframe';
+            
+            // Adicionar os campos do formulário
+            for (const [key, value] of formData.entries()) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                tempForm.appendChild(input);
+            }
+            
+            // Adicionar o formulário ao documento
+            document.body.appendChild(tempForm);
+            
+            // Configurar o callback para quando o iframe terminar de carregar
+            hiddenIframe.onload = function() {
+                // Esconder overlay de carregamento
+                loadingOverlay.style.display = 'none';
+                
                 // Mostrar mensagem de sucesso
                 alert('Registro de ocorrência enviado com sucesso!');
                 
@@ -481,23 +498,35 @@
                 
                 // Definir data de hoje novamente
                 document.querySelector('input[name="data"]').value = today;
-            } else {
-                alert('Erro ao enviar o registro. Por favor, tente novamente.');
-            }
+                
+                // Remover o formulário temporário
+                document.body.removeChild(tempForm);
+            };
             
-            // Registrar o Service Worker novamente após o envio
-            if ('serviceWorker' in navigator && serviceWorkerRegistration) {
-                // Esperar um pouco antes de registrar novamente
-                setTimeout(() => {
-                    navigator.serviceWorker.register('./service-worker.js')
-                        .then(registration => {
-                            console.log('Service Worker registrado novamente após envio:', registration.scope);
-                        })
-                        .catch(error => {
-                            console.error('Falha ao registrar o Service Worker novamente:', error);
-                        });
-                }, 1000);
-            }
+            // Enviar o formulário
+            tempForm.submit();
+            
+            // Definir um timeout de segurança caso o iframe não carregue
+            setTimeout(function() {
+                if (loadingOverlay.style.display === 'flex') {
+                    // Esconder overlay de carregamento
+                    loadingOverlay.style.display = 'none';
+                    
+                    // Mostrar mensagem de sucesso
+                    alert('Registro de ocorrência enviado com sucesso!');
+                    
+                    // Resetar formulário
+                    form.reset();
+                    
+                    // Definir data de hoje novamente
+                    document.querySelector('input[name="data"]').value = today;
+                    
+                    // Remover o formulário temporário se ainda existir
+                    if (document.body.contains(tempForm)) {
+                        document.body.removeChild(tempForm);
+                    }
+                }
+            }, 5000);
         }
         
         // Código para instalação do PWA
@@ -548,5 +577,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9506746ab5409d59',t:'MTc1MDAzNjUxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'950684dca06e6262',t:'MTc1MDAzNzE4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
