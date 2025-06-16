@@ -14,7 +14,7 @@
     <meta name="apple-mobile-web-app-title" content="Registro Ocorrências">
     <link rel="apple-touch-icon" href="icon-192.png">
     
-    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=YioSil6RJ59PmNI7Vn2jBBZaOIsvkgxU-W1dACb3SjTEIzw0p6Qe_jpwcqtVtR6GWOjeO2w2yVrIzNjkTlJsXJIJ_mi0oBW---3o-ma_dlyFAWwDzA2xurVvXItP3YpnMRTs9fHNt-OTWshY8Qy26MQ-6GRKV4C5OLwnzodqU6xunF1v4tRpJ7BhE6q5017tDn9zRh08bgEXqVyNa2JaBA" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=DIf8-9mYrYJ8bs1Pv4LatwGBJz8MNql3kiNHcESrEAIhcxeOmliZJQkMda4MOACads1TN72OjR7_K5VXy3L24Ad9tiyPaXv8XWt8TBjYAjw6EDiEprYROKO5YCTHDmd30e5YVtVNxRPT34G6okOiBotRNfcjp9a9aXC9crqirwmX-ePvb4KoH5xgzWYZYbKFbVLuiTb0BmXBXHWKQJx_XQ" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -276,13 +276,13 @@
             <h1 class="text-2xl font-bold text-center text-gray-800">REGISTRO DE OCORRÊNCIAS</h1>
         </div>
 
-        <!-- ABORDAGEM 8: Formulário HTML tradicional com método GET e target="_blank" -->
-        <form id="occurrenceForm" method="GET" action="https://script.google.com/macros/s/AKfycbxkRTTqzlwEWND2B4zHmzD2J8aSNpyrM5Kc0QSzTkmeHBJen_TkM9-AIxYbndB827jb/exec" target="_blank">
+        <!-- ABORDAGEM 9: Formulário com link direto para o Google Script -->
+        <div id="occurrenceForm">
             <!-- Data -->
             <div class="form-card mb-5 p-6">
                 <div class="mb-1">
                     <label class="block text-gray-800 font-medium mb-2">DATA</label>
-                    <input type="date" name="data" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500" required>
+                    <input type="date" id="data" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500" required>
                 </div>
             </div>
 
@@ -290,7 +290,7 @@
             <div class="form-card mb-5 p-6">
                 <div class="mb-1">
                     <label class="block text-gray-800 font-medium mb-2">TURMA</label>
-                    <select name="turma" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 bg-white" required>
+                    <select id="turma" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 bg-white" required>
                         <option value="">Selecione a turma</option>
                         <option value="6º ano A">6º ano A</option>
                         <option value="6º ano B">6º ano B</option>
@@ -378,7 +378,7 @@
             <div class="form-card mb-5 p-6">
                 <div class="mb-1">
                     <label class="block text-gray-800 font-medium mb-2">PROFESSOR e DISCIPLINA</label>
-                    <input type="text" name="professor_disciplina" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500">
+                    <input type="text" id="professor_disciplina" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500">
                 </div>
             </div>
 
@@ -386,23 +386,20 @@
             <div class="form-card mb-5 p-6">
                 <div class="mb-1">
                     <label class="block text-gray-800 font-medium mb-2">OBSERVAÇÕES</label>
-                    <textarea name="observacoes" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500" rows="5"></textarea>
+                    <textarea id="observacoes" class="w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500" rows="5"></textarea>
                 </div>
             </div>
 
-            <!-- Adicionar um campo oculto para timestamp -->
-            <input type="hidden" name="_nocache" id="nocacheField">
-
             <!-- Submit Button -->
             <div class="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg border-t border-gray-200">
-                <button type="submit" id="submitButton" class="w-full bg-green-700 text-white py-3 rounded-md font-medium submit-button flex items-center justify-center">
+                <a href="#" id="submitLink" target="_blank" class="w-full bg-green-700 text-white py-3 rounded-md font-medium submit-button flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                     </svg>
                     Enviar Registro
-                </button>
+                </a>
             </div>
-        </form>
+        </div>
     </div>
 
     <script>
@@ -410,24 +407,20 @@
         const form = document.getElementById('occurrenceForm');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const installButton = document.getElementById('installButton');
-        const submitButton = document.getElementById('submitButton');
+        const submitLink = document.getElementById('submitLink');
         const successMessage = document.getElementById('successMessage');
         const closeSuccessBtn = document.getElementById('closeSuccessBtn');
-        const nocacheField = document.getElementById('nocacheField');
         let deferredPrompt;
         
         // Set today's date as default
         const today = new Date().toISOString().split('T')[0];
-        document.querySelector('input[name="data"]').value = today;
+        document.getElementById('data').value = today;
         
-        // Adicionar timestamp ao campo oculto para evitar cache
-        nocacheField.value = new Date().getTime();
-        
-        // Manipulador de envio do formulário
-        form.addEventListener('submit', function(e) {
+        // Manipulador de clique no link de envio
+        submitLink.addEventListener('click', function(e) {
             // Validate required fields
-            const data = form.querySelector('[name="data"]').value;
-            const turma = form.querySelector('[name="turma"]').value;
+            const data = document.getElementById('data').value;
+            const turma = document.getElementById('turma').value;
             
             if (!data) {
                 e.preventDefault();
@@ -441,16 +434,41 @@
                 return;
             }
             
+            // Coletar os valores dos campos
+            const professor_disciplina = document.getElementById('professor_disciplina').value;
+            const observacoes = document.getElementById('observacoes').value;
+            
+            // Encontrar o radio button selecionado para aula
+            let aula = '';
+            const radioButtons = document.querySelectorAll('input[name="aula"]');
+            for (const radioButton of radioButtons) {
+                if (radioButton.checked) {
+                    aula = radioButton.value;
+                    break;
+                }
+            }
+            
+            // Construir a URL com os parâmetros
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxkRTTqzlwEWND2B4zHmzD2J8aSNpyrM5Kc0QSzTkmeHBJen_TkM9-AIxYbndB827jb/exec';
+            const params = new URLSearchParams();
+            
+            params.append('data', data);
+            params.append('turma', turma);
+            params.append('aula', aula);
+            params.append('professor_disciplina', professor_disciplina);
+            params.append('observacoes', observacoes);
+            
+            // Adicionar um timestamp para evitar cache
+            const timestamp = new Date().getTime();
+            params.append('_nocache', timestamp);
+            
+            const url = `${scriptURL}?${params.toString()}`;
+            
+            // Atualizar o href do link
+            submitLink.href = url;
+            
             // Show loading overlay
             loadingOverlay.style.display = 'flex';
-            
-            // Desabilitar o botão para evitar envios duplicados
-            submitButton.disabled = true;
-            
-            // Atualizar o timestamp
-            nocacheField.value = new Date().getTime();
-            
-            // O formulário será enviado normalmente via GET
             
             // Após 5 segundos, esconder o overlay e mostrar mensagem de sucesso
             setTimeout(function() {
@@ -458,13 +476,16 @@
                 successMessage.style.display = 'block';
                 
                 // Resetar formulário
-                form.reset();
+                document.getElementById('data').value = today;
+                document.getElementById('turma').value = '';
+                document.getElementById('professor_disciplina').value = '';
+                document.getElementById('observacoes').value = '';
                 
-                // Definir data de hoje novamente
-                document.querySelector('input[name="data"]').value = today;
-                
-                // Reabilitar o botão
-                submitButton.disabled = false;
+                // Desmarcar todos os radio buttons
+                const radioButtons = document.querySelectorAll('input[name="aula"]');
+                for (const radioButton of radioButtons) {
+                    radioButton.checked = false;
+                }
             }, 5000);
         });
         
@@ -502,5 +523,5 @@
         });
     });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9506c59ae46aa531',t:'MTc1MDAzOTgzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9506cea5744ff1a1',t:'MTc1MDA0MDIwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
