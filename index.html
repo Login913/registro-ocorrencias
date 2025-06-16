@@ -14,7 +14,7 @@
     <meta name="apple-mobile-web-app-title" content="Registro Ocorrências">
     <link rel="apple-touch-icon" href="icon-192.png">
     
-    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=DIf8-9mYrYJ8bs1Pv4LatwGBJz8MNql3kiNHcESrEAIhcxeOmliZJQkMda4MOACads1TN72OjR7_K5VXy3L24Ad9tiyPaXv8XWt8TBjYAjw6EDiEprYROKO5YCTHDmd30e5YVtVNxRPT34G6okOiBotRNfcjp9a9aXC9crqirwmX-ePvb4KoH5xgzWYZYbKFbVLuiTb0BmXBXHWKQJx_XQ" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=LOHtxhn6YAkowlzI-nc9j8Bl3aXPHbBLVCaLbBy2h3oKBlJtBKPZW-4pMS7lu3_H9TPtQWfWRvaJyBAdWvj867_rqVM0ymdNBnE5SK_aldiBlk4I8c81p8FPw4dvYtAn-wMdwhyBdd_LnbYMuf5I8Kl09QukOfn3Kjr3CiT3OaSmlptxk6pDtKs0tL1EJgIn1UfM19LKMR7fcT5raC0QCA" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -224,6 +224,11 @@
             font-size: 48px;
             margin-bottom: 16px;
         }
+        
+        /* Esconder o iframe */
+        #scriptFrame {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -267,6 +272,9 @@
         Instalar App
     </button>
 
+    <!-- iframe oculto para carregar o Google Script -->
+    <iframe id="scriptFrame" src="about:blank"></iframe>
+
     <div class="form-container px-4 py-6">
         <!-- Form Header -->
         <div class="form-header rounded-t-lg shadow-sm mb-6 p-6 flex flex-col items-center">
@@ -276,7 +284,7 @@
             <h1 class="text-2xl font-bold text-center text-gray-800">REGISTRO DE OCORRÊNCIAS</h1>
         </div>
 
-        <!-- ABORDAGEM 9: Formulário com link direto para o Google Script -->
+        <!-- ABORDAGEM 10: Formulário com iframe e postMessage -->
         <div id="occurrenceForm">
             <!-- Data -->
             <div class="form-card mb-5 p-6">
@@ -392,12 +400,12 @@
 
             <!-- Submit Button -->
             <div class="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg border-t border-gray-200">
-                <a href="#" id="submitLink" target="_blank" class="w-full bg-green-700 text-white py-3 rounded-md font-medium submit-button flex items-center justify-center">
+                <button type="button" id="submitButton" class="w-full bg-green-700 text-white py-3 rounded-md font-medium submit-button flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                     </svg>
                     Enviar Registro
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -407,29 +415,32 @@
         const form = document.getElementById('occurrenceForm');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const installButton = document.getElementById('installButton');
-        const submitLink = document.getElementById('submitLink');
+        const submitButton = document.getElementById('submitButton');
         const successMessage = document.getElementById('successMessage');
         const closeSuccessBtn = document.getElementById('closeSuccessBtn');
+        const scriptFrame = document.getElementById('scriptFrame');
         let deferredPrompt;
         
         // Set today's date as default
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('data').value = today;
         
-        // Manipulador de clique no link de envio
-        submitLink.addEventListener('click', function(e) {
+        // Carregar o iframe com o Google Script
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxkRTTqzlwEWND2B4zHmzD2J8aSNpyrM5Kc0QSzTkmeHBJen_TkM9-AIxYbndB827jb/exec';
+        scriptFrame.src = scriptURL;
+        
+        // Manipulador de clique no botão de envio
+        submitButton.addEventListener('click', function() {
             // Validate required fields
             const data = document.getElementById('data').value;
             const turma = document.getElementById('turma').value;
             
             if (!data) {
-                e.preventDefault();
                 alert('Por favor, preencha a data.');
                 return;
             }
             
             if (!turma) {
-                e.preventDefault();
                 alert('Por favor, selecione uma turma.');
                 return;
             }
@@ -448,27 +459,25 @@
                 }
             }
             
-            // Construir a URL com os parâmetros
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxkRTTqzlwEWND2B4zHmzD2J8aSNpyrM5Kc0QSzTkmeHBJen_TkM9-AIxYbndB827jb/exec';
-            const params = new URLSearchParams();
-            
-            params.append('data', data);
-            params.append('turma', turma);
-            params.append('aula', aula);
-            params.append('professor_disciplina', professor_disciplina);
-            params.append('observacoes', observacoes);
-            
-            // Adicionar um timestamp para evitar cache
-            const timestamp = new Date().getTime();
-            params.append('_nocache', timestamp);
-            
-            const url = `${scriptURL}?${params.toString()}`;
-            
-            // Atualizar o href do link
-            submitLink.href = url;
+            // Criar objeto com os dados do formulário
+            const formData = {
+                data: data,
+                turma: turma,
+                aula: aula,
+                professor_disciplina: professor_disciplina,
+                observacoes: observacoes,
+                _nocache: new Date().getTime()
+            };
             
             // Show loading overlay
             loadingOverlay.style.display = 'flex';
+            
+            // Desabilitar o botão para evitar envios duplicados
+            submitButton.disabled = true;
+            
+            // Abrir uma nova janela com o Google Script
+            const url = `${scriptURL}?data=${encodeURIComponent(data)}&turma=${encodeURIComponent(turma)}&aula=${encodeURIComponent(aula)}&professor_disciplina=${encodeURIComponent(professor_disciplina)}&observacoes=${encodeURIComponent(observacoes)}&_nocache=${new Date().getTime()}`;
+            window.open(url, '_blank');
             
             // Após 5 segundos, esconder o overlay e mostrar mensagem de sucesso
             setTimeout(function() {
@@ -486,6 +495,9 @@
                 for (const radioButton of radioButtons) {
                     radioButton.checked = false;
                 }
+                
+                // Reabilitar o botão
+                submitButton.disabled = false;
             }, 5000);
         });
         
@@ -523,5 +535,5 @@
         });
     });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9506cea5744ff1a1',t:'MTc1MDA0MDIwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9506d611b3481cef',t:'MTc1MDA0MDUxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
