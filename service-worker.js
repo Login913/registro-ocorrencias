@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ocorrencias-app-v2'; // VersÃ£o atualizada
+const CACHE_NAME = 'registro-ocorrencias-v5';
 const urlsToCache = [
   './',
   './index.html',
@@ -7,33 +7,31 @@ const urlsToCache = [
   './icon-512.png'
 ];
 
-// InstalaÃ§Ã£o do Service Worker
+// Instalação do Service Worker
 self.addEventListener('install', event => {
-  // ForÃ§a a ativaÃ§Ã£o imediata do novo Service Worker
+  console.log('Service Worker v5 instalado');
   self.skipWaiting();
   
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Cache aberto');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// AtivaÃ§Ã£o do Service Worker
+// Ativação do Service Worker
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  
-  // Toma controle imediatamente de todas as pÃ¡ginas
+  console.log('Service Worker v5 ativado');
   event.waitUntil(self.clients.claim());
   
+  // Limpar todos os caches antigos
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            // Deleta caches antigos que nÃ£o estÃ£o na whitelist
+          if (cacheName !== CACHE_NAME) {
+            console.log('Removendo cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -42,52 +40,52 @@ self.addEventListener('activate', event => {
   );
 });
 
-// EstratÃ©gia de cache: Cache First, falling back to Network
+// Estratégia de cache: Bypass cache completamente para script.google.com
 self.addEventListener('fetch', event => {
-  // Regra especial para o script do Google - sempre buscar da rede
-  if (event.request.url.includes('script.google.com')) {
-    event.respondWith(
-      fetch(event.request)
-        .catch(error => {
-          console.error('Erro ao buscar script do Google:', error);
-          return new Response('Erro de conexÃ£o', { 
-            status: 503,
-            statusText: 'ServiÃ§o indisponÃ­vel'
-          });
-        })
-    );
-    return; // Importante: interrompe o processamento do evento
+  const url = new URL(event.request.url);
+  
+  // Para requisições ao script do Google, NUNCA use cache
+  if (url.hostname.includes('script.google.com')) {
+    console.log('Requisição para script do Google, ignorando cache:', url.toString());
+    
+    // Cria uma nova requisição com cabeçalhos que impedem o cache
+    const noCacheRequest = new Request(event.request.url, {
+      method: event.request.method,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      mode: 'cors',
+      credentials: event.request.credentials
+    });
+    
+    event.respondWith(fetch(noCacheRequest));
+    return;
   }
-
+  
+  // Para todo o resto, use a estratégia padrão
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Cache hit - retorna a resposta do cache
         if (response) {
           return response;
         }
-
-        // Clone da requisiÃ§Ã£o
-        const fetchRequest = event.request.clone();
-
-        return fetch(fetchRequest).then(
-          response => {
-            // Verifica se recebemos uma resposta vÃ¡lida
-            if(!response || response.status !== 200 || response.type !== 'basic') {
+        
+        return fetch(event.request)
+          .then(response => {
+            if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
-
-            // Clone da resposta
+            
             const responseToCache = response.clone();
-
             caches.open(CACHE_NAME)
               .then(cache => {
                 cache.put(event.request, responseToCache);
               });
-
+              
             return response;
-          }
-        );
+          });
       })
   );
 });
