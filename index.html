@@ -429,8 +429,8 @@
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxkRTTqzlwEWND2B4zHmzD2J8aSNpyrM5Kc0QSzTkmeHBJen_TkM9-AIxYbndB827jb/exec';
         scriptFrame.src = scriptURL;
         
-        // Função para enviar dados (método único otimizado)
-        async function enviarDados(data, turma, aula, professor_disciplina, observacoes) {
+        // Função para enviar dados via fetch
+        async function enviarViaFetch(data, turma, aula, professor_disciplina, observacoes) {
             const params = new URLSearchParams({
                 'data': data,
                 'turma': turma,
@@ -442,52 +442,66 @@
             
             const url = `${scriptURL}?${params.toString()}`;
             
-            // Detectar se é mobile/app ou desktop
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            if (isMobile) {
-                // MOBILE: Usar iframe (mais confiável em apps)
-                console.log('Enviando via iframe (mobile)...');
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.style.width = '1px';
-                iframe.style.height = '1px';
-                iframe.style.border = 'none';
-                iframe.src = url;
-                
-                document.body.appendChild(iframe);
-                
-                // Aguardar processamento e remover
-                setTimeout(() => {
-                    if (document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                    }
-                }, 3000);
-                
-            } else {
-                // DESKTOP: Usar apenas fetch (sem duplicação)
-                console.log('Enviando via fetch (desktop)...');
-                try {
-                    await fetch(url, {
-                        method: 'GET',
-                        mode: 'no-cors'
-                    });
-                    console.log('Fetch executado com sucesso');
-                } catch (error) {
-                    console.log('Fetch falhou, usando iframe como backup...', error);
-                    // Fallback para iframe se fetch falhar
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = url;
-                    document.body.appendChild(iframe);
-                    
-                    setTimeout(() => {
-                        if (document.body.contains(iframe)) {
-                            document.body.removeChild(iframe);
-                        }
-                    }, 2000);
-                }
+            console.log('Tentando enviar via fetch...');
+            try {
+                await fetch(url, {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+                console.log('Fetch executado');
+            } catch (error) {
+                console.error('Erro no fetch:', error);
+                throw error;
             }
+        }
+        
+        // Função para enviar dados via iframe
+        function enviarViaIframe(data, turma, aula, professor_disciplina, observacoes) {
+            const params = new URLSearchParams({
+                'data': data,
+                'turma': turma,
+                'aula': aula,
+                'professor_disciplina': professor_disciplina,
+                'observacoes': observacoes,
+                '_nocache': new Date().getTime()
+            });
+            
+            const url = `${scriptURL}?${params.toString()}`;
+            
+            console.log('Enviando via iframe...');
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.style.width = '1px';
+            iframe.style.height = '1px';
+            iframe.style.border = 'none';
+            iframe.src = url;
+            
+            document.body.appendChild(iframe);
+            
+            // Aguardar processamento e remover
+            setTimeout(() => {
+                if (document.body.contains(iframe)) {
+                    document.body.removeChild(iframe);
+                }
+            }, 3000);
+        }
+        
+        // Função para enviar dados via imagem (trigger)
+        function enviarViaTrigger(data, turma, aula, professor_disciplina, observacoes) {
+            const params = new URLSearchParams({
+                'data': data,
+                'turma': turma,
+                'aula': aula,
+                'professor_disciplina': professor_disciplina,
+                'observacoes': observacoes,
+                '_nocache': new Date().getTime()
+            });
+            
+            const url = `${scriptURL}?${params.toString()}`;
+            
+            console.log('Trigger de imagem enviado');
+            const img = new Image();
+            img.src = url;
         }
         
         // Manipulador de clique no botão de envio
@@ -527,12 +541,14 @@
             submitButton.disabled = true;
             
             try {
-                // Enviar dados usando método otimizado
-                await enviarDados(data, turma, aula, professor_disciplina, observacoes);
+                // Usar os 3 métodos como na versão 57 que funcionava
+                await enviarViaFetch(data, turma, aula, professor_disciplina, observacoes);
+                enviarViaIframe(data, turma, aula, professor_disciplina, observacoes);
+                enviarViaTrigger(data, turma, aula, professor_disciplina, observacoes);
                 
                 console.log('Dados enviados com sucesso!');
                 
-                // Aguardar um tempo menor para mostrar sucesso
+                // Aguardar tempo suficiente para processar
                 setTimeout(() => {
                     // Mostrar mensagem de sucesso
                     loadingOverlay.style.display = 'none';
@@ -552,7 +568,7 @@
                     
                     // Reabilitar o botão
                     submitButton.disabled = false;
-                }, 1500); // Reduzido de 3000 para 1500ms
+                }, 3000); // Voltou para 3 segundos
                 
             } catch (error) {
                 console.error('Erro ao enviar dados:', error);
@@ -597,5 +613,5 @@
         });
     });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'955d49b5b71cf901',t:'MTc1MDk0NzAyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'955d572523a2f8f5',t:'MTc1MDk0NzU3NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
