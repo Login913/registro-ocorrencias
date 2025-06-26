@@ -465,39 +465,26 @@
             // Desabilitar o botão para evitar envios duplicados
             submitButton.disabled = true;
             
-            // SOLUÇÃO SIMPLES: Criar um formulário HTML e submeter
-            const form = document.createElement('form');
-            form.method = 'GET';
-            form.action = scriptURL;
-            form.target = '_blank';
-            form.style.display = 'none';
+            // SOLUÇÃO MOBILE-FRIENDLY: Usar iframe oculto para enviar dados
+            const url = `${scriptURL}?data=${encodeURIComponent(data)}&turma=${encodeURIComponent(turma)}&aula=${encodeURIComponent(aula)}&professor_disciplina=${encodeURIComponent(professor_disciplina)}&observacoes=${encodeURIComponent(observacoes)}&_nocache=${new Date().getTime()}`;
             
-            // Adicionar campos como inputs hidden
-            const fields = {
-                'data': data,
-                'turma': turma,
-                'aula': aula,
-                'professor_disciplina': professor_disciplina,
-                'observacoes': observacoes,
-                '_nocache': new Date().getTime()
-            };
+            // Criar iframe temporário para enviar os dados
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.style.width = '1px';
+            iframe.style.height = '1px';
+            iframe.style.border = 'none';
+            iframe.src = url;
             
-            for (const [name, value] of Object.entries(fields)) {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = name;
-                input.value = value;
-                form.appendChild(input);
-            }
+            // Adicionar iframe ao body
+            document.body.appendChild(iframe);
             
-            // Adicionar o formulário ao body e submeter
-            document.body.appendChild(form);
-            form.submit();
-            
-            // Remover o formulário após submissão
+            // Remover iframe após 5 segundos
             setTimeout(() => {
-                document.body.removeChild(form);
-            }, 1000);
+                if (document.body.contains(iframe)) {
+                    document.body.removeChild(iframe);
+                }
+            }, 5000);
             
             // Após 3 segundos, esconder o overlay e mostrar mensagem de sucesso
             setTimeout(function() {
@@ -555,5 +542,5 @@
         });
     });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'955d1856c6481d0f',t:'MTc1MDk0NTAwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'955d29af144ff905',t:'MTc1MDk0NTcxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
