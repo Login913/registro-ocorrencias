@@ -429,8 +429,65 @@
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxkRTTqzlwEWND2B4zHmzD2J8aSNpyrM5Kc0QSzTkmeHBJen_TkM9-AIxYbndB827jb/exec';
         scriptFrame.src = scriptURL;
         
+        // Função para enviar dados
+        async function enviarDados(data, turma, aula, professor_disciplina, observacoes) {
+            const params = new URLSearchParams({
+                'data': data,
+                'turma': turma,
+                'aula': aula,
+                'professor_disciplina': professor_disciplina,
+                'observacoes': observacoes,
+                '_nocache': new Date().getTime()
+            });
+            
+            const url = `${scriptURL}?${params.toString()}`;
+            
+            try {
+                // MÉTODO 1: Tentar fetch primeiro
+                console.log('Tentando enviar via fetch...');
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+                console.log('Fetch executado');
+                
+                // Aguardar um pouco para garantir que o script processou
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+            } catch (error) {
+                console.log('Fetch falhou, tentando iframe...', error);
+                
+                // MÉTODO 2: Fallback para iframe se fetch falhar
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.style.width = '1px';
+                iframe.style.height = '1px';
+                iframe.style.border = 'none';
+                iframe.src = url;
+                
+                document.body.appendChild(iframe);
+                
+                // Aguardar processamento
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // Remover iframe
+                if (document.body.contains(iframe)) {
+                    document.body.removeChild(iframe);
+                }
+            }
+            
+            // MÉTODO 3: Garantia adicional - criar uma imagem para trigger
+            try {
+                const img = new Image();
+                img.src = url;
+                console.log('Trigger de imagem enviado');
+            } catch (e) {
+                console.log('Trigger de imagem falhou', e);
+            }
+        }
+        
         // Manipulador de clique no botão de envio
-        submitButton.addEventListener('click', function() {
+        submitButton.addEventListener('click', async function() {
             // Validate required fields
             const data = document.getElementById('data').value;
             const turma = document.getElementById('turma').value;
@@ -465,29 +522,13 @@
             // Desabilitar o botão para evitar envios duplicados
             submitButton.disabled = true;
             
-            // SOLUÇÃO MOBILE-FRIENDLY: Usar iframe oculto para enviar dados
-            const url = `${scriptURL}?data=${encodeURIComponent(data)}&turma=${encodeURIComponent(turma)}&aula=${encodeURIComponent(aula)}&professor_disciplina=${encodeURIComponent(professor_disciplina)}&observacoes=${encodeURIComponent(observacoes)}&_nocache=${new Date().getTime()}`;
-            
-            // Criar iframe temporário para enviar os dados
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.style.width = '1px';
-            iframe.style.height = '1px';
-            iframe.style.border = 'none';
-            iframe.src = url;
-            
-            // Adicionar iframe ao body
-            document.body.appendChild(iframe);
-            
-            // Remover iframe após 5 segundos
-            setTimeout(() => {
-                if (document.body.contains(iframe)) {
-                    document.body.removeChild(iframe);
-                }
-            }, 5000);
-            
-            // Após 3 segundos, esconder o overlay e mostrar mensagem de sucesso
-            setTimeout(function() {
+            try {
+                // Enviar dados usando múltiplos métodos
+                await enviarDados(data, turma, aula, professor_disciplina, observacoes);
+                
+                console.log('Dados enviados com sucesso!');
+                
+                // Mostrar mensagem de sucesso
                 loadingOverlay.style.display = 'none';
                 successMessage.style.display = 'block';
                 
@@ -503,9 +544,14 @@
                     radioButton.checked = false;
                 }
                 
+            } catch (error) {
+                console.error('Erro ao enviar dados:', error);
+                loadingOverlay.style.display = 'none';
+                alert('Erro ao enviar registro. Tente novamente.');
+            } finally {
                 // Reabilitar o botão
                 submitButton.disabled = false;
-            }, 3000);
+            }
         });
         
         // Fechar mensagem de sucesso
@@ -542,5 +588,5 @@
         });
     });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'955d29af144ff905',t:'MTc1MDk0NTcxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'955d3a55f348f901',t:'MTc1MDk0NjM5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
