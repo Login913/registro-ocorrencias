@@ -465,81 +465,60 @@
             // Desabilitar o botão para evitar envios duplicados
             submitButton.disabled = true;
             
-            // ABORDAGEM MOBILE-FRIENDLY: Usar fetch com modo no-cors
-            const url = `${scriptURL}?data=${encodeURIComponent(data)}&turma=${encodeURIComponent(turma)}&aula=${encodeURIComponent(aula)}&professor_disciplina=${encodeURIComponent(professor_disciplina)}&observacoes=${encodeURIComponent(observacoes)}&_nocache=${new Date().getTime()}`;
+            // SOLUÇÃO SIMPLES: Criar um formulário HTML e submeter
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = scriptURL;
+            form.target = '_blank';
+            form.style.display = 'none';
             
-            // Tentar múltiplas abordagens para garantir compatibilidade mobile
-            Promise.race([
-                // Abordagem 1: Fetch com no-cors
-                fetch(url, { 
-                    method: 'GET', 
-                    mode: 'no-cors',
-                    cache: 'no-cache'
-                }).catch(() => null),
+            // Adicionar campos como inputs hidden
+            const fields = {
+                'data': data,
+                'turma': turma,
+                'aula': aula,
+                'professor_disciplina': professor_disciplina,
+                'observacoes': observacoes,
+                '_nocache': new Date().getTime()
+            };
+            
+            for (const [name, value] of Object.entries(fields)) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
+            }
+            
+            // Adicionar o formulário ao body e submeter
+            document.body.appendChild(form);
+            form.submit();
+            
+            // Remover o formulário após submissão
+            setTimeout(() => {
+                document.body.removeChild(form);
+            }, 1000);
+            
+            // Após 3 segundos, esconder o overlay e mostrar mensagem de sucesso
+            setTimeout(function() {
+                loadingOverlay.style.display = 'none';
+                successMessage.style.display = 'block';
                 
-                // Abordagem 2: Criar um elemento img para fazer a requisição
-                new Promise((resolve) => {
-                    const img = new Image();
-                    img.onload = () => resolve('success');
-                    img.onerror = () => resolve('success'); // Mesmo com erro, pode ter funcionado
-                    img.src = url + '&_img=1';
-                    setTimeout(() => resolve('timeout'), 3000);
-                }),
+                // Resetar formulário
+                document.getElementById('data').value = today;
+                document.getElementById('turma').value = '';
+                document.getElementById('professor_disciplina').value = '';
+                document.getElementById('observacoes').value = '';
                 
-                // Abordagem 3: Usar um iframe temporário
-                new Promise((resolve) => {
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = url + '&_iframe=1';
-                    document.body.appendChild(iframe);
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                        resolve('iframe');
-                    }, 2000);
-                })
-            ]).then(() => {
-                // Após 3 segundos, esconder o overlay e mostrar mensagem de sucesso
-                setTimeout(function() {
-                    loadingOverlay.style.display = 'none';
-                    successMessage.style.display = 'block';
-                    
-                    // Resetar formulário
-                    document.getElementById('data').value = today;
-                    document.getElementById('turma').value = '';
-                    document.getElementById('professor_disciplina').value = '';
-                    document.getElementById('observacoes').value = '';
-                    
-                    // Desmarcar todos os radio buttons
-                    const radioButtons = document.querySelectorAll('input[name="aula"]');
-                    for (const radioButton of radioButtons) {
-                        radioButton.checked = false;
-                    }
-                    
-                    // Reabilitar o botão
-                    submitButton.disabled = false;
-                }, 2000);
-            }).catch(() => {
-                // Em caso de erro, ainda mostrar sucesso (pois pode ter funcionado)
-                setTimeout(function() {
-                    loadingOverlay.style.display = 'none';
-                    successMessage.style.display = 'block';
-                    
-                    // Resetar formulário
-                    document.getElementById('data').value = today;
-                    document.getElementById('turma').value = '';
-                    document.getElementById('professor_disciplina').value = '';
-                    document.getElementById('observacoes').value = '';
-                    
-                    // Desmarcar todos os radio buttons
-                    const radioButtons = document.querySelectorAll('input[name="aula"]');
-                    for (const radioButton of radioButtons) {
-                        radioButton.checked = false;
-                    }
-                    
-                    // Reabilitar o botão
-                    submitButton.disabled = false;
-                }, 2000);
-            });
+                // Desmarcar todos os radio buttons
+                const radioButtons = document.querySelectorAll('input[name="aula"]');
+                for (const radioButton of radioButtons) {
+                    radioButton.checked = false;
+                }
+                
+                // Reabilitar o botão
+                submitButton.disabled = false;
+            }, 3000);
         });
         
         // Fechar mensagem de sucesso
@@ -576,6 +555,5 @@
         });
     });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'955d0e68d5daf901',t:'MTc1MDk0NDU5NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'955d1856c6481d0f',t:'MTc1MDk0NTAwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
